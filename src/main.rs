@@ -9,6 +9,8 @@ use tensorflow::Session;
 use tensorflow::SessionOptions;
 use tensorflow::SessionRunArgs;
 use tensorflow::Tensor;
+use image::io::Reader as ImageReader;
+use image::imageops::FilterType;
 
 
 pub fn main() -> Result<(), Box<dyn Error>> {
@@ -23,7 +25,10 @@ pub fn main() -> Result<(), Box<dyn Error>> {
     let session = Session::new(&SessionOptions::new(), &graph)?;
 
     // input vector
-    let x = Tensor::new(&[1, 224, 224, 3]).with_values(&[3.0f32; 224*224*3])?;
+    let img = ImageReader::open("./img/example.jpeg")?.decode()?;
+    let resized_img = img.resize_exact(224 as u32, 224 as u32, FilterType::Lanczos3);
+    let img_vec: Vec<f32> = resized_img.to_rgb8().to_vec().iter().map(|x| *x as f32).collect();
+    let x = Tensor::new(&[1, 224, 224, 3]).with_values(&img_vec)?;
 
     // Run the graph.
     let mut args = SessionRunArgs::new();

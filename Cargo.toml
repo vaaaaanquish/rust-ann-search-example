@@ -6,3 +6,4 @@ edition = "2018"
 
 [dependencies]
 tensorflow = "0.17.0"
+image = "0.23.14"
