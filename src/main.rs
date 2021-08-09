@@ -22,28 +22,28 @@ pub fn main() -> Result<(), Box<dyn Error>> {
         &hora::index::hnsw_params::HNSWParams::<f32>::default(),
     );
 
-    // add point
+    // make index
     let paths = fs::read_dir("img")?;
     let mut file_map = HashMap::new();
     for (i, path) in paths.into_iter().enumerate() {
         let file_path = path?.path();
         let path_str = file_path.to_str();
-        if path_str.is_some() {
-            file_map.insert(i, path_str.unwrap().to_string().clone());  // key: id, value: filename
-            let emb_vec = emb.convert_from_img(path_str.unwrap())?;     // convert embedding vector
-            index.add(emb_vec.as_slice(), i)?;                          // indexing
-            println!("index file {:?}: {:?}", i, path_str.unwrap());
-        }
+
+        file_map.insert(i, path_str.unwrap().to_string().clone());  // key: id, value: filename
+        let emb_vec = emb.convert_from_img(path_str.unwrap())?;     // convert embedding vector
+        index.add(emb_vec.as_slice().clone(), i)?;                  // indexing
+
+        println!("index file {:?}: {:?}", i, path_str.unwrap());
     }
-    index.build(hora::core::metrics::Metric::CosineSimilarity).unwrap();
+    index.build(hora::core::metrics::Metric::Euclidean)?;
 
     // search
-    let query_image = file_map[100]                            // select search query
-    let emb_vec_target = emb.convert_from_img(query_image)?;   // convert embedding vector
-    let result = index.search(emb_vec_target.as_slice(), 10);  // search
+    let query_image = &file_map[&100];                                      // select search query
+    let emb_vec_target = emb.convert_from_img(&query_image.to_string())?;   // convert embedding vector
+    let result = index.search(emb_vec_target.as_slice(), 10);               // search
     println!("neighbor images by query: {:?}", query_image);
     for r in result {
-        println!("{:?}", file_map[r]);
+        println!("{:?}", &file_map[&r]);
     }
 
     Ok(())
