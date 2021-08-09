@@ -20,14 +20,19 @@ RUN pyenv install 3.7.7
 RUN pyenv global 3.7.7
 RUN pip install tensorflow==2.5.0
 
+
 # dump pretrain resnet model
 RUN mkdir /app/model
 COPY ./make_model_file.py /app
 RUN python make_model_file.py
 
+
 # file
 COPY ./Cargo.toml /app/Cargo.toml
 COPY ./src /app/src
 COPY ./img /app/img
+RUN rm ./img/.gitkeep
+COPY ./make_food101_dataset.sh /app/make_food101_dataset.sh
+
 
 ENTRYPOINT [ "/bin/bash" ]
